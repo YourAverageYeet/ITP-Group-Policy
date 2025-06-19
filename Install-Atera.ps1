@@ -34,6 +34,7 @@ Write-Host "Machine type is...`t" -NoNewline -ForegroundColor DarkGray
 
 if($IsWindows){
     Write-Host "Windows" -ForegroundColor Yellow
+    $checkFor = "ATERA Networks"
     $checkedPaths = @(
         Join-Path "C:" "Program Files"
         Join-Path "C:" "Program Files (x86)"
@@ -46,25 +47,30 @@ if($IsWindows){
     # Linux
 }
 
-$notFound = 0
+$numFound = 0
 if($IsWindows){
+    $expected = $checkedPaths.Length
     foreach ($base in $checkedPaths) {
         $path = Join-Path $base $checkFor
         Write-Host "Checking: $path...`t" -NoNewline -ForegroundColor DarkGray
         if(Test-Path $path){
             Write-Host "ok" -ForegroundColor Green
+            $numFound++
         } else {
             Write-Host "not found" -ForegroundColor Red
-            $notFound++
         }
     }
 } else {
-    $notFound++
+    #NO-OP
 }
 
 # If not found, install.
 
-if($notFound){
-    Write-Host "ATREA not found or (currently) unable to be searched for." `
+if($numFound -eq 0){
+    Write-Host "ATERA not found or (currently) unable to be searched for." `
     -ForegroundColor DarkRed
+} elseif($numFound -gt 0 -and $numFound -lt $expected){
+    Write-Host "Broken ATREA install!" -ForegroundColor DarkRed
+} else {
+    Write-Host "ATERA is already installed!" -ForegroundColor Green
 }
