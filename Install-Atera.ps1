@@ -1,12 +1,13 @@
 ##############################    [!] NOTE [!]    ##############################
-# The following two variables are *yours to modify*. The values that these need#
-# to contain can be found bt inspecting the URL generated when selecting ????. #
-# Everything after these two variables shouldn't be modified unless you know   #
-# *exactly* what you are doing.                                                #
+# The following three variables are *yours to modify*. The values that these   #
+# need to contain can be found bt inspecting the URL generated when selecting  #
+# ????. Everything after these two variables shouldn't be modified unless you  #
+# know *exactly* what you are doing.                                           #
 ##############################    [!] NOTE [!]    ##############################
 
-$clinetID   =   
-$ateraID    =   ""
+$clientID   =      # fill in
+$ateraID    =   "" # fill in
+$baseURL    =   "" # fill in
 
 # Determine platform and, from that, assign the following to variables: 
 ## On Windows:
@@ -73,4 +74,22 @@ if($numFound -eq 0){
     Write-Host "Broken ATREA install!" -ForegroundColor DarkRed
 } else {
     Write-Host "ATERA is already installed!" -ForegroundColor Green
+    Exit
+}
+
+if($IsWindows){
+    $strCID = $clientID.ToString()
+    $saveTop = "C:\CP-Temp"
+    $savePath = Join-Path $saveTop "atera.msi"
+    Write-Host "Pulling from: $downloadURL" -ForegroundColor Yellow
+    Write-Host "Saving to $savePath" -ForegroundColor Yellow
+    Invoke-WebRequest $downloadURL -OutFile $savePath
+    $MSIargs = @(
+        /i $savePath
+        /qn
+    )
+    Start-Process "msiexec" -ArgumentList $MSIargs -Wait
+    Write-Host "ATERA Installed!" -ForegroundColor Green
+    Write-Host "Now removing $saveTop" -ForegroundColor Yellow
+    Remove-Item $saveTop
 }
