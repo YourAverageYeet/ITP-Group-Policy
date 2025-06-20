@@ -5,9 +5,9 @@
 # know *exactly* what you are doing.                                           #
 ##############################    [!] NOTE [!]    ##############################
 
-$clientID   =   21 # fill in
-$ateraID    =   "001Q300000RvNmmIAF" # fill in
-$baseURL    =   "https://itprotects.servicedesk.atera.com/GetAgent/Windows/" # fill in
+$clientID   =   # fill in
+$ateraID    =   "" # fill in
+$baseURL    =   "" # fill in
 
 # Determine platform and, from that, assign the following to variables: 
 ## On Windows:
