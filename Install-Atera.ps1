@@ -5,9 +5,9 @@
 # know *exactly* what you are doing.                                           #
 ##############################    [!] NOTE [!]    ##############################
 
-$clientID   =      # fill in
-$ateraID    =   "" # fill in
-$baseURL    =   "" # fill in
+$clientID   =   21 # fill in
+$ateraID    =   "001Q300000RvNmmIAF" # fill in
+$baseURL    =   "https://itprotects.servicedesk.atera.com/GetAgent/Windows/" # fill in
 
 # Determine platform and, from that, assign the following to variables: 
 ## On Windows:
@@ -79,17 +79,19 @@ if($numFound -eq 0){
 
 if($IsWindows){
     $strCID = $clientID.ToString()
-    $saveTop = "C:\CP-Temp"
+    $saveTop = Join-Path "$env:APPDATA" "CP-Temp"
+    New-Item $saveTop -ItemType Directory
     $savePath = Join-Path $saveTop "atera.msi"
+    $downloadURL = $baseURL + "?cid=" + $strCID + "&aid=" + $ateraID
     Write-Host "Pulling from: $downloadURL" -ForegroundColor Yellow
     Write-Host "Saving to $savePath" -ForegroundColor Yellow
     Invoke-WebRequest $downloadURL -OutFile $savePath
     $MSIargs = @(
-        /i $savePath
-        /qn
+        "/i $savePath"
+        "/qn"
     )
     Start-Process "msiexec" -ArgumentList $MSIargs -Wait
     Write-Host "ATERA Installed!" -ForegroundColor Green
     Write-Host "Now removing $saveTop" -ForegroundColor Yellow
-    Remove-Item $saveTop
+    Remove-Item -Force -Recurse $saveTop
 }
