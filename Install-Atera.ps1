@@ -5,7 +5,7 @@
 # know *exactly* what you are doing.                                           #
 ##############################    [!] NOTE [!]    ##############################
 
-$clientID   =   # fill in
+$clientID   =      # fill in
 $ateraID    =   "" # fill in
 $baseURL    =   "" # fill in
 
@@ -19,10 +19,16 @@ $baseURL    =   "" # fill in
 ### The name of the package to grep for (possibly; I need to read the bash
 ###                                      script to determine what actually
 ###                                      happens on a Linux install)
+#
+# Granted, this script probably won't include those paths for a long time, so
+# the original platform-checking code has been removed as of 06/30/2025. The
+# above outline is kept for reference should either I or someone else deem it
+# necessary to add it (back) in. Therefore, the following Windows-only check has
+# been added to notify users about this change.
 
 Write-Host "PowerShell version is:`t" -NoNewline -ForegroundColor DarkGray
 $ver = (Get-Host).Version
-if($ver.Major -eq 7 -or $ver.Major -ge 2025){ # Second condition for VSCode
+if($ver.Major -eq 7 -or $ver.Major -ge 2025){ # Second condition is for VSCode
     Write-Host $ver -ForegroundColor Green
 } else {
     Write-Host $ver -ForegroundColor Red
@@ -31,38 +37,41 @@ needed to run (or test) this script" -ForegroundColor Red
     Exit
 }
 
-Write-Host "Machine type is...`t" -NoNewline -ForegroundColor DarkGray
+$noticeBlock = @(
+    "`nNOTICE: The cross-platform capabilities of this script have been removed"
+    "as of 06/30/2025. If you desire these to be added back in feel free to"
+    "open either an issue or a pull request at the URL below:`n"
+    "https://github.com/YourAverageYeet/ITP-Group-Policy`n"
+)
 
-if($IsWindows){
-    Write-Host "Windows" -ForegroundColor Yellow
-    $checkFor = "ATERA Networks"
-    $checkedPaths = @(
-        Join-Path "C:" "Program Files"
-        Join-Path "C:" "Program Files (x86)"
-    )
-} elseif ($IsMacOS) {
-    Write-Host "macOS" -ForegroundColor Yellow
-    # macOS dirs
-} else {
-    Write-Host "Linux" -ForegroundColor Yellow
-    # Linux
+if(!$IsWindows){
+    foreach ($line in $noticeBlock){
+        Write-Host $line -ForegroundColor Red
+    }
+    Exit
+}
+
+$checkFor = "ATERA Networks"
+Write-Host "Checking for $checkFor in:" -ForegroundColor Yellow
+$checkedPaths = @(
+    Join-Path "C:" "Program Files"
+    Join-Path "C:" "Program Files (x86)"
+)
+foreach ($path in $checkedPaths){
+    Write-Host $path
 }
 
 $numFound = 0
-if($IsWindows){
-    $expected = $checkedPaths.Length
-    foreach ($base in $checkedPaths) {
-        $path = Join-Path $base $checkFor
-        Write-Host "Checking: $path...`t" -NoNewline -ForegroundColor DarkGray
-        if(Test-Path $path){
-            Write-Host "ok" -ForegroundColor Green
-            $numFound++
-        } else {
-            Write-Host "not found" -ForegroundColor Red
-        }
+$expected = $checkedPaths.Length
+foreach ($base in $checkedPaths) {
+    $path = Join-Path $base $checkFor
+    Write-Host "Checking: $path...`t" -NoNewline -ForegroundColor DarkGray
+    if(Test-Path $path){
+        Write-Host "ok" -ForegroundColor Green
+        $numFound++
+    } else {
+        Write-Host "not found" -ForegroundColor Red
     }
-} else {
-    #NO-OP
 }
 
 # If not found, install.
@@ -77,21 +86,19 @@ if($numFound -eq 0){
     Exit
 }
 
-if($IsWindows){
-    $strCID = $clientID.ToString()
-    $saveTop = Join-Path "$env:APPDATA" "CP-Temp"
-    New-Item $saveTop -ItemType Directory
-    $savePath = Join-Path $saveTop "atera.msi"
-    $downloadURL = $baseURL + "?cid=" + $strCID + "&aid=" + $ateraID
-    Write-Host "Pulling from: $downloadURL" -ForegroundColor Yellow
-    Write-Host "Saving to $savePath" -ForegroundColor Yellow
-    Invoke-WebRequest $downloadURL -OutFile $savePath
-    $MSIargs = @(
-        "/i $savePath"
-        "/qn"
-    )
-    Start-Process "msiexec" -ArgumentList $MSIargs -Wait
-    Write-Host "ATERA Installed!" -ForegroundColor Green
-    Write-Host "Now removing $saveTop" -ForegroundColor Yellow
-    Remove-Item -Force -Recurse $saveTop
-}
+$strCID = $clientID.ToString()
+$saveTop = Join-Path "$env:APPDATA" "CP-Temp"
+New-Item $saveTop -ItemType Directory
+$savePath = Join-Path $saveTop "atera.msi"
+$downloadURL = $baseURL + "?cid=" + $strCID + "&aid=" + $ateraID
+Write-Host "Pulling from: $downloadURL" -ForegroundColor Yellow
+Write-Host "Saving to $savePath" -ForegroundColor Yellow
+Invoke-WebRequest $downloadURL -OutFile $savePath
+$MSIargs = @(
+    "/i $savePath"
+    "/qn"
+)
+Start-Process "msiexec" -ArgumentList $MSIargs -Wait
+Write-Host "ATERA Installed!" -ForegroundColor Green
+Write-Host "Now removing $saveTop" -ForegroundColor Yellow
+Remove-Item -Force -Recurse $saveTop
