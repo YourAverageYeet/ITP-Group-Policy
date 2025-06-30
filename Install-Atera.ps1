@@ -34,7 +34,7 @@ if($ver.Major -eq 7 -or $ver.Major -ge 2025){ # Second condition is for VSCode
     Write-Host $ver -ForegroundColor Red
     Write-Host "PowerShell 7 (or the VSCode extension v2025 or greater) is 
 needed to run (or test) this script" -ForegroundColor Red
-    Exit
+    Exit 1
 }
 
 $noticeBlock = @(
@@ -48,7 +48,7 @@ if(!$IsWindows){
     foreach ($line in $noticeBlock){
         Write-Host $line -ForegroundColor Red
     }
-    Exit
+    Exit 1
 }
 
 $checkFor = "ATERA Networks"
@@ -80,25 +80,31 @@ if($numFound -eq 0){
     Write-Host "ATERA not found or (currently) unable to be searched for." `
     -ForegroundColor DarkRed
 } elseif($numFound -gt 0 -and $numFound -lt $expected){
-    Write-Host "Broken ATREA install!" -ForegroundColor DarkRed
+    Write-Host "Broken ATERA install!" -ForegroundColor DarkRed
 } else {
     Write-Host "ATERA is already installed!" -ForegroundColor Green
     Exit
 }
 
 $strCID = $clientID.ToString()
-$saveTop = Join-Path "$env:APPDATA" "CP-Temp"
-New-Item $saveTop -ItemType Directory
+$saveTop = Join-Path "$env:APPDATA" "GP-ATERA-Temp"
+if(!(Test-Path $saveTop)){
+    New-Item $saveTop -ItemType Directory -Force
+} else {
+    Write-Host "$saveTop already exists! Debug exit..." -ForegroundColor Red
+    Exit 1
+}
 $savePath = Join-Path $saveTop "atera.msi"
 $downloadURL = $baseURL + "?cid=" + $strCID + "&aid=" + $ateraID
 Write-Host "Pulling from: $downloadURL" -ForegroundColor Yellow
 Write-Host "Saving to $savePath" -ForegroundColor Yellow
-Invoke-WebRequest $downloadURL -OutFile $savePath
-$MSIargs = @(
-    "/i $savePath"
-    "/qn"
-)
-Start-Process "msiexec" -ArgumentList $MSIargs -Wait
+try{
+    Invoke-WebRequest $downloadURL -OutFile $savePath
+} catch {
+    Write-Host "Download failed: $_" -ForegroundColor Red
+    Exit 1
+}
+Start-Process "msiexec" -ArgumentList "/i `"$savePath`"", "/qn" -Wait
 Write-Host "ATERA Installed!" -ForegroundColor Green
 Write-Host "Now removing $saveTop" -ForegroundColor Yellow
 Remove-Item -Force -Recurse $saveTop
