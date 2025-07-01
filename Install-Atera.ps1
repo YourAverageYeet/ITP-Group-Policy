@@ -8,7 +8,6 @@
 $clientID   =           # fill in
 $ateraID    =   ""      # fill in
 $baseURL    =   ""      # fill in
-$checkBoth  =   $true   #change to "$false" as needed
 
 # Determine platform and, from that, assign the following to variables: 
 ## On Windows:
@@ -52,38 +51,20 @@ if(!$IsWindows){
     Exit 1
 }
 
-$checkFor = "ATERA Networks"
-Write-Host "Checking for $checkFor in:" -ForegroundColor Yellow
-$checkedPaths = @(
-    Join-Path "C:" "Program Files"
-)
-if($checkBoth){
-    $checkedPaths += Join-Path "C:" "Program Files (x86)"
-}
-foreach ($path in $checkedPaths){
-    Write-Host $path
-}
-
-$numFound = 0
-$expected = $checkedPaths.Length
-foreach ($base in $checkedPaths) {
-    $path = Join-Path $base $checkFor
-    Write-Host "Checking: $path...`t" -NoNewline -ForegroundColor DarkGray
-    if(Test-Path $path){
-        Write-Host "ok" -ForegroundColor Green
-        $numFound++
-    } else {
-        Write-Host "not found" -ForegroundColor Red
-    }
+$path = "C:\Program Files\ATERA Networks"
+Write-Host "Checking: $path...`t" -NoNewline -ForegroundColor DarkGray
+if(Test-Path $path){
+    Write-Host "ok" -ForegroundColor Green
+    $numFound++
+} else {
+    Write-Host "not found" -ForegroundColor Red
 }
 
 # If not found, install.
 
-if($numFound -eq 0){
+if($numFound){
     Write-Host "ATERA not found or (currently) unable to be searched for." `
     -ForegroundColor DarkRed
-} elseif($numFound -gt 0 -and $numFound -lt $expected){
-    Write-Host "Broken ATERA install!" -ForegroundColor DarkRed
 } else {
     Write-Host "ATERA is already installed!" -ForegroundColor Green
     Exit
