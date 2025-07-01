@@ -5,9 +5,10 @@
 # know *exactly* what you are doing.                                           #
 ##############################    [!] NOTE [!]    ##############################
 
-$clientID   =      # fill in
-$ateraID    =   "" # fill in
-$baseURL    =   "" # fill in
+$clientID   =           # fill in
+$ateraID    =   ""      # fill in
+$baseURL    =   ""      # fill in
+$checkBoth  =   $true   #change to "$false" as needed
 
 # Determine platform and, from that, assign the following to variables: 
 ## On Windows:
@@ -32,7 +33,7 @@ if($ver.Major -eq 7 -or $ver.Major -ge 2025){ # Second condition is for VSCode
     Write-Host $ver -ForegroundColor Green
 } else {
     Write-Host $ver -ForegroundColor Red
-    Write-Host "PowerShell 7 (or the VSCode extension v2025 or greater) is 
+    Write-Host "PowerShell 7 (or the VSCode extension on v2025 or greater) is 
 needed to run (or test) this script" -ForegroundColor Red
     Exit 1
 }
@@ -55,8 +56,10 @@ $checkFor = "ATERA Networks"
 Write-Host "Checking for $checkFor in:" -ForegroundColor Yellow
 $checkedPaths = @(
     Join-Path "C:" "Program Files"
-    Join-Path "C:" "Program Files (x86)"
 )
+if($checkBoth){
+    $checkedPaths += Join-Path "C:" "Program Files (x86)"
+}
 foreach ($path in $checkedPaths){
     Write-Host $path
 }
